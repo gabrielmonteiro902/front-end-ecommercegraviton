@@ -1,14 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import WelcomePage from './pages/WelcomePage'
 import HomePage from './pages/HomePage'
+import './index.css'
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100">
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<WelcomePage />} />
+          <Route path="/graviton-home" element={<HomePage />} />  
         </Routes>
-      </div>
+        </AuthProvider>
     </Router>
   )
 }
