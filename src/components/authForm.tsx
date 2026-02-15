@@ -2,13 +2,8 @@ import React, { useState } from 'react';
 import type {FormEvent} from 'react';
 import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Form from './form'; // Importando o seu componente de formulário base
-
-// Configuração do Axios para trabalhar com a sua API Go e Cookies HttpOnly
-const api = axios.create({
-  baseURL: 'http://localhost:3000/v1',
-  withCredentials: true,
-});
+import Form from './form'; 
+import { api } from '../services/api';
 
 interface FormData {
   name: string;

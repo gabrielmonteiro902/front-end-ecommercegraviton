@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
-
-const api = axios.create({
-  baseURL: 'http://localhost:3000/v1',
-  withCredentials: true,
-});
+import { api } from '../services/api';
 
 interface AdminProfile {
   name_admin: string;

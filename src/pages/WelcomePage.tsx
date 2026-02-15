@@ -4,12 +4,10 @@ import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from "axios";
+import { api } from "../services/api";
 
-const api = axios.create({
-  baseURL: 'http://localhost:3000/v1',
-  withCredentials: true,
-})
+
 
 export default function WelcomePage() {
   const navigate = useNavigate();
