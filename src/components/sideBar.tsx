@@ -1,18 +1,12 @@
+import '../index.css';
 import React, { useState, useEffect } from 'react';
-import {
-    LayoutDashboard,
-    Users,
-    Settings,
-    LogOut,
-    ShieldCheck,
-    Menu,
-    X,
-    ChevronRight
-} from 'lucide-react';
+import { LayoutDashboard, Settings, LogOut, Menu, X, ChevronRight } from 'lucide-react';
+import GravitonLogo from './GravitonLogo';
 import { api } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-interface sidebarItemProps {
+interface SidebarItemProps {
     icon: React.ElementType;
     label: string;
     path: string;
@@ -20,117 +14,144 @@ interface sidebarItemProps {
     onClick: (path: string) => void;
 }
 
-const SidebarItem = ({ icon: Icon, label, path, active, onClick }: sidebarItemProps) => (
+const SidebarItem = ({ icon: Icon, label, path, active, onClick }: SidebarItemProps) => (
     <button
         onClick={() => onClick(path)}
-        className={`flex w-full items-centes gap-4 rounded-x1 p-4 transition-all duration-200 group
-    ${active
-                ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.1)]'
-                : 'text-gray-500 hover:bg-gray-900 hover:text-while'
-            }`}
+        className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 group ${
+            active
+                ? 'bg-white text-black shadow-[0_0_24px_rgba(255,255,255,0.08)]'
+                : 'text-white/30 hover:text-white hover:bg-white/[0.05]'
+        }`}
     >
-        <Icon className={`shrink-0 ${active ? 'text-black' : 'group-hover: text-while'}`} size={20} />
-        <span className="font-medium tracking-tight">{label}</span>
-        {active && <ChevronRight size={16} className='m1-auto' />}
+        <Icon size={15} className="shrink-0" />
+        <span className="text-[11px] font-black tracking-[0.18em] uppercase flex-1 text-left">
+            {label}
+        </span>
+        {active && <ChevronRight size={13} className="ml-auto opacity-50" />}
     </button>
-)
+);
 
 export default function Sidebar({ children }: { children: React.ReactNode }) {
-    const [userName, setUserName] = useState<string>('carregando...')
-    const [isOpen, setIsOpen] = useState<boolean>(true)
-    const navigate = useNavigate();
-    const location = useLocation();
+    const [userName, setUserName] = useState<string>('...');
+    const [isOpen, setIsOpen] = useState<boolean>(true);
+    const navigate   = useNavigate();
+    const location   = useLocation();
+    const { logout } = useAuth();
 
     useEffect(() => {
-        const getProfile = async () => {
-            try {
-                const response = await api.get('/me');
-                setUserName(response.data.name_admin)
-            } catch (error) {
-                console.error("Erro ao carregar o perfil do usuário:", error)
-                setUserName("admin");
-            }
-        };
-
-        getProfile();
-    }, [])
+        api.get('/me')
+            .then(r => setUserName(r.data.name_admin))
+            .catch(() => setUserName('Admin'));
+    }, []);
 
     const menuItems = [
-        { icons: LayoutDashboard, label: 'Dashboard', path: '/graviton-home' },
-        { icons: Users, label: 'Administradores', path: '/admins' },
-        { icons: Settings, label: 'Configurações', path: '/settings' },
+        { icon: LayoutDashboard, label: 'Repositórios', path: '/graviton-home' },
+        { icon: Settings,        label: 'Configurações', path: '/settings'      },
     ];
 
-    const handleNavigation = (path: string) => {
-        navigate(path);
-    }
-
-    const handleLogout = () => {
-        navigate('/');
-    };
+    const handleLogout = async () => { await logout(); navigate('/'); };
 
     return (
         <div className="flex min-h-screen w-full bg-black text-white">
+
+            {/* Mobile toggle */}
             <button
-                className="fixed top-6 right-6 z-50 rounded-full border border-gray-800 bg-gray-900 p-3 lg:hidden"
-                onClick={() => setIsOpen(!isOpen)}
+                className="fixed top-5 right-5 z-50 rounded-xl border border-white/10 bg-black/80 backdrop-blur-md p-2.5 lg:hidden"
+                onClick={() => setIsOpen(v => !v)}
             >
-                {isOpen ? <X size={20} /> : <Menu size={20} />}
+                {isOpen
+                    ? <X    size={17} className="text-white/50" />
+                    : <Menu size={17} className="text-white/50" />
+                }
             </button>
 
-            <aside
-                className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-gray-800 bg-black transition-transform duration-300 lg: translate-x-0
-             ${isOpen ? 'translate-x-0' : '-translate-x-full'} `}
-            >
-                <div className="flex items-center gap-3 px-8 py-10">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-black">
-                        <ShieldCheck size={24} strokeWidth={2.5} />
-                    </div>
-                    <div className="flex flex-col">
-                        <h1 className="font-black tracking-tighter text-white uppercase">GRAVITON</h1>
-                        <span className="font-bold uppercase tracking-[0.2em] text-gray-600 leading-none">
+            {/* ── Aside ── */}
+            <aside className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-white/[0.07] bg-black overflow-hidden transition-transform duration-300 lg:translate-x-0 ${
+                isOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}>
+
+                {/* Background layers */}
+                <div className="absolute top-0 left-0 right-0 h-48 pointer-events-none"
+                     style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.04) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 grid-bg pointer-events-none opacity-40" />
+
+                {/* Logo */}
+                <div className="relative z-10 flex items-center gap-3 px-7 pt-9 pb-7">
+                    <GravitonLogo size={34} showRing={false} />
+                    <div>
+                        <p className="font-black tracking-[0.32em] text-white text-[13px] uppercase leading-none">
+                            GRAVITON
+                        </p>
+                        <p className="text-[9px] font-mono tracking-[0.22em] text-white/25 uppercase mt-1">
                             Infrastructure
-                        </span>
+                        </p>
                     </div>
                 </div>
 
-                <nav className="flex-1 space-y-2 px-4">
-                    {menuItems.map((item) =>
-                        <SidebarItem
-                            key={item.path}
-                            icon={item.icons}
-                            label={item.label}
-                            path={item.path}
-                            active={location.pathname === item.path}
-                            onClick={handleNavigation}
-                        />
-                    )}
+                {/* Separator */}
+                <div className="relative z-10 mx-6 h-px bg-white/[0.06] mb-5" />
+
+                {/* Nav */}
+                <nav className="relative z-10 flex-1 flex flex-col px-3">
+                    <p className="text-[9px] font-mono tracking-[0.28em] text-white/18 uppercase px-3 mb-2">
+                        Navegação
+                    </p>
+                    <div className="flex flex-col gap-0.5">
+                        {menuItems.map(item => (
+                            <SidebarItem
+                                key={item.path}
+                                icon={item.icon}
+                                label={item.label}
+                                path={item.path}
+                                active={location.pathname === item.path}
+                                onClick={navigate}
+                            />
+                        ))}
+                    </div>
                 </nav>
-                <div className='border-t border-gray-800 p-4'>
-                    <div className='flex items-center gap-3 rounded-2x1 border border-gray-800 bg-800 bg-gray-950 p-4'>
-                        <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-800 font-bold text-gray-400'>
+
+                {/* User card */}
+                <div className="relative z-10 p-4 pt-0">
+                    <div className="h-px bg-white/[0.06] mb-4" />
+                    <div className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3.5">
+                        {/* Avatar */}
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.07] border border-white/[0.08] font-black text-white/50 text-sm select-none">
                             {userName.charAt(0).toUpperCase()}
                         </div>
-                        <div className='flex flex-1 flex-col overflow-hidden'>
-                            <span className='truncate font-bold text-white'>{userName}</span>
-                            <span className='truncate text-gray-600 font-medium'>Online</span>
+                        {/* Info */}
+                        <div className="flex flex-1 flex-col overflow-hidden">
+                            <span className="truncate text-[13px] font-black text-white tracking-tight">
+                                {userName}
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                                <div
+                                    className="w-1.5 h-1.5 rounded-full bg-green-400"
+                                    style={{ animation: 'twinkle 2.5s ease-in-out infinite' }}
+                                />
+                                <span className="text-[9px] font-mono tracking-[0.2em] text-white/25 uppercase">
+                                    Online
+                                </span>
+                            </div>
                         </div>
+                        {/* Logout */}
                         <button
                             onClick={handleLogout}
-                            className='text-gray-600 hover:text-red-500 transition-colors'
-                            title='Sair'
+                            className="text-white/20 hover:text-white/60 transition-colors p-1 rounded-lg hover:bg-white/[0.05]"
+                            title="Sair"
                         >
-                            <LogOut size={10} />
+                            <LogOut size={14} />
                         </button>
                     </div>
+                    <p className="text-[8px] font-mono text-white/10 tracking-[0.18em] uppercase mt-3 px-1">
+                        GRV-SYS // ORB:443 // v1.0
+                    </p>
                 </div>
             </aside>
 
-            <main className={`flex-1 transition-all duration-300 lg:ml-72`}>
-                <div className="h-full w-full">
-                    {children}
-                </div>
-            </main>ß
+            {/* Main */}
+            <main className="flex-1 lg:ml-72">
+                {children}
+            </main>
         </div>
-    )
-};
+    );
+}

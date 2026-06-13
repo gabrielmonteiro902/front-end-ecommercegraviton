@@ -1,0 +1,35 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none">
+
+  <!-- Background -->
+  <rect width="200" height="200" fill="#060606"/>
+
+  <!-- Orbital ring hint (very subtle) -->
+  <circle cx="100" cy="100" r="92" stroke="#1e1e1e" stroke-width="2"/>
+  <!-- Satellite dot on the ring -->
+  <circle cx="100" cy="8" r="3.5" fill="#2d2d2d"/>
+
+  <!--
+    G mark — Grok-inspired angular geometric style
+    Key design decisions:
+    · Top bar has a 45° angular cut at the right end (Grok signature)
+    · G shelf has a pointed angular left end (Grok-style vector cut)
+    · All strokes are 26px bold
+    · The G opening is on the right (y 54→93), like a C that becomes a G
+  -->
+
+  <!-- Left vertical stroke (full height) -->
+  <rect x="28" y="28" width="26" height="144" fill="white"/>
+
+  <!-- Top horizontal stroke — 45° cut at right opening end -->
+  <polygon points="28,28 148,28 174,54 28,54" fill="white"/>
+
+  <!-- Bottom horizontal stroke -->
+  <rect x="28" y="146" width="146" height="26" fill="white"/>
+
+  <!-- G middle shelf — angular pointed left end (the Grok-style cut) -->
+  <polygon points="118,93 174,93 174,119 118,119 93,106" fill="white"/>
+
+  <!-- Lower-right vertical stroke (closes the G on the bottom-right) -->
+  <rect x="148" y="93" width="26" height="79" fill="white"/>
+
+</svg>
