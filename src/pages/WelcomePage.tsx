@@ -1,101 +1,152 @@
-import "../index.css"
+import "../index.css";
 import Form from "../components/form";
 import { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
 import { api } from "../services/api";
 
-
-
 export default function WelcomePage() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
-  const [isLogin, setIsLogin] = useState<boolean>();
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
-  const [userPassword, setUserPassword] = useState("");
+    const [isLogin, setIsLogin] = useState<boolean>(false);
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
+    // campos de login
+    const [tenantId, setTenantId] = useState("");
+    const [loginEmail, setLoginEmail] = useState("");
+    const [loginPassword, setLoginPassword] = useState("");
 
-    const endpoint = isLogin ? '/login' : '/admins';
+    // campos de criar tenant
+    const [tenantSlug, setTenantSlug] = useState("");
+    const [tenantName, setTenantName] = useState("");
+    const [tenantEmail, setTenantEmail] = useState("");
+    const [tenantPlan, setTenantPlan] = useState<"free" | "starter" | "pro" | "enterprise">("free");
 
-    const payload = isLogin
-      ? { email_admin: userEmail, password_admin: userPassword }
-      : { name_admin: userName, email_admin: userEmail, password_admin: userPassword };
+    const [error, setError] = useState("");
 
-    try {
-      const response = await api.post(endpoint, payload);
-      
-      console.log(isLogin ? "Login ok!" : "Cadastro ok!")
+    const handleAuth = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
 
-      login(response.data);
-      navigate("/graviton-home")
+        try {
+            if (isLogin) {
+                const response = await api.post(
+                    "/login",
+                    { email_admin: loginEmail, password_admin: loginPassword, tenant_id: tenantId },
+                    { headers: { "X-Tenant-ID": tenantId } }
+                );
+                login(response.data);
+                navigate("/graviton-home");
+            } else {
+                await api.post("/tenants", {
+                    id: tenantSlug,
+                    name: tenantName,
+                    email: tenantEmail,
+                    plan: tenantPlan,
+                });
+                setIsLogin(true);
+                setTenantId(tenantSlug);
+                setLoginEmail(tenantEmail);
+            }
+        } catch (err) {
+            const axiosErr = err as AxiosError<{ message?: string; error?: string }>;
+            setError(
+                axiosErr.response?.data?.message ||
+                axiosErr.response?.data?.error ||
+                "Erro de conexão"
+            );
+        }
+    };
 
-    } catch (err) {
-      const error = err as AxiosError<{error: string}>;
-      console.log("Erro na autenticação:", error.response?.data?.error || "Erro de conexão");
-    }
-  }
+    return (
+        <div className="flex min-h-screen w-full flex-col bg-black">
+            <div className="items-start justify-start px-12 py-8">
+                <h1 className="font-bold text-white tracking-tighter">
+                    WELCOME TO GRAVITON SERVICES<span className="text-gray-600">.</span>
+                </h1>
+            </div>
 
-  return (
-    <div className="flex min-h-screen w-full flex-col bg-black">
-      {/* Header original preservado */}
-      <div className="items-start justify-start px-12 py-8">
-        <h1 className="font-bold text-white tracking-tighter">
-          WELCOME TO GRAVITON SERVICES<span className="text-gray-600">.</span>
-        </h1>
-      </div>
+            <div className="flex flex-1 items-center justify-center p-6">
+                <Form
+                    title={isLogin ? "Entrar na Loja" : "Criar Nova Loja"}
+                    buttonLabel={isLogin ? "Acessar Sistema" : "Criar Loja"}
+                    onSubmit={handleAuth}
+                >
+                    {isLogin ? (
+                        <>
+                            <Form.Input
+                                label="ID da Loja"
+                                placeholder="minha-loja"
+                                value={tenantId}
+                                onChange={(e) => setTenantId(e.target.value)}
+                            />
+                            <Form.Input
+                                label="E-mail"
+                                type="email"
+                                placeholder="admin@loja.com"
+                                value={loginEmail}
+                                onChange={(e) => setLoginEmail(e.target.value)}
+                            />
+                            <Form.InputPassword
+                                label="Senha"
+                                placeholder="*******"
+                                value={loginPassword}
+                                onChange={(e) => setLoginPassword(e.target.value)}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <Form.Input
+                                label="ID da Loja (slug)"
+                                placeholder="minha-loja"
+                                value={tenantSlug}
+                                onChange={(e) => setTenantSlug(e.target.value)}
+                            />
+                            <Form.Input
+                                label="Nome da Loja"
+                                placeholder="Minha Loja"
+                                value={tenantName}
+                                onChange={(e) => setTenantName(e.target.value)}
+                            />
+                            <Form.Input
+                                label="E-mail"
+                                type="email"
+                                placeholder="loja@email.com"
+                                value={tenantEmail}
+                                onChange={(e) => setTenantEmail(e.target.value)}
+                            />
+                            <Form.Select
+                                label="Plano"
+                                value={tenantPlan}
+                                onChange={(e) => setTenantPlan(e.target.value as typeof tenantPlan)}
+                                options={[
+                                    { value: "free", label: "Free" },
+                                    { value: "starter", label: "Starter" },
+                                    { value: "pro", label: "Pro" },
+                                    { value: "enterprise", label: "Enterprise" },
+                                ]}
+                            />
+                        </>
+                    )}
 
-      {/* Área do Formulário Híbrido */}
-      <div className="flex flex-1 items-center justify-center p-6">
-        <Form 
-          title={isLogin ? "Entrar na Conta" : "Criar Novo Admin"} 
-          buttonLabel={isLogin ? "Acessar Sistema" : "Finalizar Cadastro"}
-          onSubmit={handleAuth}
-        >
-          {/* CAMPO DINÂMICO: Só aparece se o modo NÃO for Login */}
-          {!isLogin && (
-            <Form.Input
-              label="Nome Completo"
-              placeholder="Digite seu nome completo..."
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-            />
-          )}
+                    {error && (
+                        <p className="text-sm text-red-500 text-center">{error}</p>
+                    )}
 
-          <Form.Input
-            label="E-mail"
-            type="email"
-            placeholder="admin@graviton.com"
-            value={userEmail}
-            onChange={(e) => setUserEmail(e.target.value)}
-          />
-
-          <Form.InputPassword
-            label="Senha"
-            placeholder="*******"
-            value={userPassword}
-            onChange={(e) => setUserPassword(e.target.value)}
-          />
-
-          {/* BOTÃO DE ALTERNÂNCIA (Toggle) */}
-          <div className="mt-2 text-center">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-gray-500 hover:text-white transition-all cursor-pointer underline underline-offset-4"
-            >
-              {isLogin 
-                ? 'Ainda não tem um acesso? Cadastre-se aqui' 
-                : 'Já possui uma conta? Voltar para o login'}
-            </button>
-          </div>
-        </Form>
-      </div>
-    </div>
-  )
+                    <div className="mt-2 text-center">
+                        <button
+                            type="button"
+                            onClick={() => { setIsLogin(!isLogin); setError(""); }}
+                            className="text-sm text-gray-500 hover:text-white transition-all cursor-pointer underline underline-offset-4"
+                        >
+                            {isLogin
+                                ? "Ainda não tem uma loja? Crie aqui"
+                                : "Já possui uma conta? Voltar para o login"}
+                        </button>
+                    </div>
+                </Form>
+            </div>
+        </div>
+    );
 }

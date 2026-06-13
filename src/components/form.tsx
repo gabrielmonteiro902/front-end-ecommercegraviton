@@ -74,5 +74,28 @@ export default function FormularioAgendamento({ title, buttonLabel = "Confirmar"
   );
 }
 
+interface SelectProps {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options: { value: string; label: string }[];
+}
+
+const SelectField = ({ label, value, onChange, options }: SelectProps) => (
+  <div className="flex flex-col gap-2 w-full">
+    <label className="text-sm font-medium text-gray-400">{label}</label>
+    <select
+      value={value}
+      onChange={onChange}
+      className="rounded-lg border border-gray-800 bg-gray-950 p-3 text-white outline-none focus:border-gray-200 transition-all"
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+  </div>
+);
+
 FormularioAgendamento.Input = InputField;
-FormularioAgendamento.InputPassword = InputPasswordField
+FormularioAgendamento.InputPassword = InputPasswordField;
+FormularioAgendamento.Select = SelectField;

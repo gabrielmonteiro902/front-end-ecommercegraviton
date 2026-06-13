@@ -1,55 +1,58 @@
 import { useContext, createContext, useState, useEffect, type ReactNode } from "react";
-
-import type { Database } from "../types/database";
-
-type AdminID = Database['public']['Tables']['admins']['Row'];
+import { api } from "../services/api";
+import type { AuthSession } from "../types/database";
 
 interface AuthContextType {
-    user: AdminID | null;
-    login: (admin: AdminID) => void;
-    logout: () => void;
+    session: AuthSession | null;
+    login: (session: AuthSession) => void;
+    logout: () => Promise<void>;
     loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<AdminID | null>(null);
+    const [session, setSession] = useState<AuthSession | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const savedUser = sessionStorage.getItem("graviton_admin");
-        if (savedUser) {
-          try {
-            setUser(JSON.parse(savedUser));
-          } catch (e) {
-            console.error("Erro ao carregar sessão:", e);
-          }
+        const raw = sessionStorage.getItem("graviton_session");
+        if (raw) {
+            try {
+                setSession(JSON.parse(raw));
+            } catch {
+                sessionStorage.removeItem("graviton_session");
+            }
         }
         setLoading(false);
-      }, []);
+    }, []);
 
-      const login = (admin: AdminID) => {
-        setUser(admin);
-        sessionStorage.setItem("graviton_admin", JSON.stringify(admin));
-      };
+    const login = (data: AuthSession) => {
+        setSession(data);
+        sessionStorage.setItem("graviton_session", JSON.stringify(data));
+    };
 
-      const logout = () => {
-        setUser(null);
-        sessionStorage.removeItem("graviton_admin");
-      };
+    const logout = async () => {
+        try {
+            await api.post("/logout");
+        } catch {
+            // token já expirado — limpa mesmo assim
+        }
+        setSession(null);
+        sessionStorage.removeItem("graviton_session");
+    };
 
-      return(
-        <AuthContext.Provider value={{ user, login, logout, loading}}>
-          {children}
+    return (
+        <AuthContext.Provider value={{ session, login, logout, loading }}>
+            {children}
         </AuthContext.Provider>
-      )
-}
+    );
+};
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-     throw new Error("useAuth deve ser usado dentro de um AuthProvider")
-  }
-  return context;
-}
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("useAuth deve ser usado dentro de um AuthProvider");
+    }
+    return context;
+};
