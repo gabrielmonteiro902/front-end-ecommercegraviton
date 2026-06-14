@@ -12,22 +12,34 @@ interface SidebarItemProps {
     path: string;
     active: boolean;
     onClick: (path: string) => void;
+    featured?: boolean;
 }
 
-const SidebarItem = ({ icon: Icon, label, path, active, onClick }: SidebarItemProps) => (
+const SidebarItem = ({ icon: Icon, label, path, active, onClick, featured }: SidebarItemProps) => (
     <button
         onClick={() => onClick(path)}
-        className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 group ${
+        className={`relative flex w-full items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200 group ${
             active
-                ? 'bg-white text-black shadow-[0_0_24px_rgba(255,255,255,0.08)]'
+                ? featured
+                    ? 'bg-violet-600 text-white shadow-[0_0_24px_rgba(139,92,246,0.35)]'
+                    : 'bg-white text-black shadow-[0_0_24px_rgba(255,255,255,0.08)]'
+                : featured
+                ? 'bg-violet-950/40 border border-violet-500/20 text-white/80 hover:bg-violet-950/60 hover:border-violet-400/40 hover:text-white'
                 : 'text-white/30 hover:text-white hover:bg-white/[0.05]'
         }`}
     >
-        <Icon size={15} className="shrink-0" />
+        <Icon size={featured ? 16 : 15} className={`shrink-0 ${featured && !active ? 'text-violet-400' : ''}`} />
         <span className="text-[11px] font-black tracking-[0.18em] uppercase flex-1 text-left">
             {label}
         </span>
-        {active && <ChevronRight size={13} className="ml-auto opacity-50" />}
+        {active
+            ? <ChevronRight size={13} className="ml-auto opacity-50" />
+            : featured
+            ? <span className="text-[7px] font-black tracking-[0.15em] uppercase text-violet-400 bg-violet-950/80 border border-violet-500/30 px-1.5 py-0.5 rounded">
+                MAIN
+              </span>
+            : null
+        }
     </button>
 );
 
@@ -45,10 +57,10 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
     }, []);
 
     const menuItems = [
-        { icon: LayoutDashboard, label: 'Repositórios',    path: '/graviton-home'   },
-        { icon: Atom,            label: 'Dois Corpos',     path: '/dois-corpos'     },
-        { icon: Orbit,           label: 'Sist. Orbital',   path: '/sistema-orbital' },
-        { icon: Settings,        label: 'Configurações',   path: '/settings'        },
+        { icon: Orbit,           label: 'Sist. Orbital',   path: '/sistema-orbital', featured: true  },
+        { icon: LayoutDashboard, label: 'Repositórios',    path: '/graviton-home',   featured: false },
+        { icon: Atom,            label: 'Dois Corpos',     path: '/dois-corpos',     featured: false },
+        { icon: Settings,        label: 'Configurações',   path: '/settings',        featured: false },
     ];
 
     const handleLogout = async () => { await logout(); navigate('/'); };
@@ -98,7 +110,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
                     <p className="text-[9px] font-mono tracking-[0.28em] text-white/18 uppercase px-3 mb-2">
                         Navegação
                     </p>
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-2">
                         {menuItems.map(item => (
                             <SidebarItem
                                 key={item.path}
@@ -107,6 +119,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
                                 path={item.path}
                                 active={location.pathname === item.path}
                                 onClick={navigate}
+                                featured={item.featured}
                             />
                         ))}
                     </div>
