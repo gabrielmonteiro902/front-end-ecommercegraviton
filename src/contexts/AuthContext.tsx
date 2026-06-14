@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         setSession(null);
         sessionStorage.removeItem("graviton_session");
+        localStorage.removeItem("graviton_tenant_id");
     };
 
     return (
