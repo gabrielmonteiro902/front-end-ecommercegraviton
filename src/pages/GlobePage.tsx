@@ -126,10 +126,7 @@ export default function GlobePage() {
             <span className="font-mono text-[10px] text-gray-600">{item.label}</span>
           </div>
         ))}
-        <div className="flex items-center gap-2 mt-1">
-          <span className="w-2.5 h-2.5 rounded-sm bg-purple-400" />
-          <span className="font-mono text-[10px] text-gray-600">Disponível para contratação</span>
-        </div>
+
       </div>
 
       {/* Bottom-right: controls hint */}

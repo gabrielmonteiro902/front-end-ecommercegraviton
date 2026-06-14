@@ -6,6 +6,9 @@ import HomePage from './pages/HomePage'
 import SyncLoadingPage from './pages/SyncLoadingPage'
 import ContributorsPage from './pages/ContributorsPage'
 import GlobePage from './pages/GlobePage'
+import TwoBodyPage from './pages/TwoBodyPage'
+import TwoBodyViewPage from './pages/TwoBodyViewPage'
+import SolarSystemPage from './pages/SolarSystemPage'
 import './index.css'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -57,6 +60,23 @@ function App() {
           <Route path="/globe" element={
             <ProtectedRoute>
               <GlobePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/dois-corpos" element={
+            <ProtectedRoute>
+              <Sidebar>
+                <TwoBodyPage />
+              </Sidebar>
+            </ProtectedRoute>
+          } />
+          <Route path="/dois-corpos/view" element={
+            <ProtectedRoute>
+              <TwoBodyViewPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/sistema-orbital" element={
+            <ProtectedRoute>
+              <SolarSystemPage />
             </ProtectedRoute>
           } />
 

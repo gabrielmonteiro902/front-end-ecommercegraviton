@@ -127,7 +127,7 @@ export default function GravityGlobe({ contributions }: { contributions: Contrib
       tex.colorSpace = THREE.SRGBColorSpace;
       const spriteMat = new THREE.SpriteMaterial({
         map: tex,
-        color: c.contributor.hireable ? new THREE.Color('#c084fc') : new THREE.Color('#ffffff'),
+        color: new THREE.Color('#ffffff'),
         depthTest: false,
       });
       const sprite = new THREE.Sprite(spriteMat);
@@ -175,26 +175,26 @@ export default function GravityGlobe({ contributions }: { contributions: Contrib
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       link.textContent = c.contributor.username;
-      const isHireable = c.contributor.hireable;
-      link.style.background    = isHireable ? '#c084fc' : '#ffffff';
-      link.style.color         = '#000000';
-      link.style.fontFamily    = "ui-monospace,'Courier New',monospace";
-      link.style.fontSize      = '11px';
-      link.style.fontWeight    = '900';
-      link.style.letterSpacing = '0.1em';
-      link.style.textDecoration = 'none';
-      link.style.whiteSpace    = 'nowrap';
-      link.style.padding       = '3px 8px';
-      link.style.borderRadius  = '5px';
-      link.style.display       = 'block';
-      link.style.pointerEvents = 'auto';
-      link.style.cursor        = 'pointer';
-      link.style.boxShadow     = '0 2px 10px rgba(0,0,0,0.9)';
-
-      const bgNormal = isHireable ? '#c084fc' : '#ffffff';
-      const bgHover  = isHireable ? '#e879f9' : '#d4d4d4';
-      link.addEventListener('mouseenter', () => { link.style.background = bgHover; });
-      link.addEventListener('mouseleave', () => { link.style.background = bgNormal; });
+      const fgColor = '#e0e0e0';
+      Object.assign(link.style, {
+        background: '#0d0d0d',
+        color: fgColor,
+        border: `1px solid ${fgColor}44`,
+        fontFamily: "ui-monospace,'Courier New',monospace",
+        fontSize: '8px',
+        fontWeight: '900',
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        textDecoration: 'none',
+        whiteSpace: 'nowrap',
+        padding: '2px 6px',
+        borderRadius: '4px',
+        display: 'block',
+        pointerEvents: 'auto',
+        cursor: 'pointer',
+      });
+      link.addEventListener('mouseenter', () => { link.style.background = '#1a1a1a'; });
+      link.addEventListener('mouseleave', () => { link.style.background = '#0d0d0d'; });
 
       wrap.appendChild(link);
       labelsContainer.appendChild(wrap);
@@ -291,14 +291,10 @@ export default function GravityGlobe({ contributions }: { contributions: Contrib
         const screenX = (tempVec.x * 0.5 + 0.5) * cW;
         const screenY = (-tempVec.y * 0.5 + 0.5) * cH;
 
-        // Fade out as satellite goes around the back of the globe
-        const fade = tempVec.z < 0.6 ? 1 : 1 - (tempVec.z - 0.6) / 0.4;
-
-        // Place label bottom 6px above sprite top (translateY(-100%) anchors bottom to `top`)
         const topPx = screenY - spriteHalfPx - 6;
 
         el.style.visibility = 'visible';
-        el.style.opacity    = fade.toFixed(3);
+        el.style.opacity    = '1';
         el.style.left       = `${screenX}px`;
         el.style.top        = `${topPx}px`;
       });

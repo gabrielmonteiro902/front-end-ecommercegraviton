@@ -53,3 +53,11 @@ export interface ContributionsResponse {
     total_commits: number;
     contributions: Contribution[];
 }
+
+export interface OrbitConnection {
+    id: string;
+    name: string | null;
+    primary_repository: Repository;
+    secondary_repository: Repository;
+    created_at: string;
+}
