@@ -230,7 +230,7 @@ export default function WelcomePage() {
                     <div className="flex flex-col gap-2.5">
                         {[
                             { label: "Sistemas Online", delay: "0s" },
-                            { label: "99.9% Uptime",    delay: "0.7s" },
+                            { label: "99.9% Uptime", delay: "0.7s" },
                             { label: "Orbital Class Security", delay: "1.4s" },
                         ].map(({ label, delay }) => (
                             <div key={label} className="flex items-center gap-2.5">
@@ -277,11 +277,10 @@ export default function WelcomePage() {
                                     key={m}
                                     type="button"
                                     onClick={() => switchMode(m)}
-                                    className={`flex-1 py-4 text-[11px] font-black tracking-[0.22em] uppercase transition-all duration-200 ${
-                                        mode === m
+                                    className={`flex-1 py-4 text-[11px] font-black tracking-[0.22em] uppercase transition-all duration-200 ${mode === m
                                             ? "bg-white text-black"
                                             : "text-white/25 hover:text-white/50 hover:bg-white/[0.03]"
-                                    }`}
+                                        }`}
                                 >
                                     {m === "login" ? "Entrar" : "Criar Sistema"}
                                 </button>
@@ -339,7 +338,7 @@ export default function WelcomePage() {
                                     />
                                     <Input
                                         label="Nome do Sistema Orbital"
-                                        placeholder="Minha Empresa Ltda"
+                                        placeholder="Nome do seu Sistema Orbital"
                                         value={tenantName}
                                         onChange={e => setTenantName(e.target.value)}
                                     />
