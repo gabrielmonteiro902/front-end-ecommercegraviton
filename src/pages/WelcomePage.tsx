@@ -1,5 +1,6 @@
 import "../index.css";
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import Stars from "../components/Stars";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -11,35 +12,6 @@ import GravitonLogo from "../components/GravitonLogo";
 type Mode = "login" | "register";
 
 // ─── Stars ───────────────────────────────────────────────────────────────────
-function Stars() {
-    const stars = useMemo(() =>
-        Array.from({ length: 140 }, (_, i) => ({
-            id: i,
-            x: (i * 7.3 + 13.7) % 100,
-            y: (i * 13.1 + 7.3) % 100,
-            size: (i % 3) * 0.5 + 0.5,
-            delay: (i * 0.41) % 5,
-            dur: (i % 3) + 2.5,
-        })), []);
-
-    return (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-            {stars.map(s => (
-                <div
-                    key={s.id}
-                    className="absolute rounded-full bg-white"
-                    style={{
-                        left: `${s.x}%`,
-                        top: `${s.y}%`,
-                        width: `${s.size}px`,
-                        height: `${s.size}px`,
-                        animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
-                    }}
-                />
-            ))}
-        </div>
-    );
-}
 
 // ─── Scanline ────────────────────────────────────────────────────────────────
 function Scanline() {

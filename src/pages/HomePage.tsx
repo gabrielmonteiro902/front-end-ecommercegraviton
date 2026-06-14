@@ -1,5 +1,6 @@
 import '../index.css';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import Stars from '../components/Stars';
 import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { Plus, ArrowRight, Trash2, Check } from 'lucide-react';
@@ -15,35 +16,6 @@ type DeleteTarget =
 type Toast = { type: 'success' | 'error'; message: string };
 
 // ─── Background ───────────────────────────────────────────────────────────────
-function Stars() {
-    const stars = useMemo(() =>
-        Array.from({ length: 100 }, (_, i) => ({
-            id: i,
-            x: (i * 7.3 + 13.7) % 100,
-            y: (i * 13.1 + 7.3) % 100,
-            size: (i % 3) * 0.5 + 0.5,
-            delay: (i * 0.41) % 5,
-            dur: (i % 3) + 2.5,
-        })), []);
-
-    return (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-            {stars.map(s => (
-                <div
-                    key={s.id}
-                    className="absolute rounded-full bg-white"
-                    style={{
-                        left: `${s.x}%`,
-                        top: `${s.y}%`,
-                        width: `${s.size}px`,
-                        height: `${s.size}px`,
-                        animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
-                    }}
-                />
-            ))}
-        </div>
-    );
-}
 
 function Scanline() {
     return (
@@ -247,7 +219,7 @@ export default function HomePage() {
             {/* Grid + Scanline + Stars */}
             <div className="absolute inset-0 grid-bg pointer-events-none" />
             <Scanline />
-            <Stars />
+            <Stars count={100} />
 
             {/* ── Content ── */}
             <div className="relative z-20 flex flex-col min-h-screen px-10 py-8">
