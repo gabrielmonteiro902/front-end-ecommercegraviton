@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { api } from '../services/api';
+import { api, normalizeContributions } from '../services/api';
 import type { ContributionsResponse } from '../types/database';
 import GravityGlobe from '../components/GravityGlobe';
 import Stars from '../components/Stars';
@@ -22,17 +22,18 @@ export default function GlobePage() {
   const location = useLocation();
   const repositoryId = searchParams.get('repository_id');
 
+  const rawState = location.state?.contributions ?? null;
   const [data, setData] = useState<ContributionsResponse | null>(
-    location.state?.contributions ?? null
+    rawState ? normalizeContributions(rawState) : null
   );
-  const [loading, setLoading] = useState(!location.state?.contributions);
+  const [loading, setLoading] = useState(!rawState);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (data || !repositoryId) return;
 
     api.get(`/contributions?repository_id=${repositoryId}`)
-      .then(res => setData(res.data))
+      .then(res => setData(normalizeContributions(res.data)))
       .catch((err: AxiosError) => {
         if (err.response?.status === 401) { navigate('/'); return; }
         setError('Não foi possível carregar os dados do globo.');

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { api } from '../services/api';
+import { api, normalizeContributions } from '../services/api';
 import type { ContributionsResponse } from '../types/database';
 import DualGlobe from '../components/DualGlobe';
 import Stars from '../components/Stars';
@@ -33,7 +33,7 @@ export default function TwoBodyViewPage() {
             api.get(`/contributions?repository_id=${primaryId}`),
             api.get(`/contributions?repository_id=${secondaryId}`),
         ])
-            .then(([r1, r2]) => setData({ primary: r1.data, secondary: r2.data }))
+            .then(([r1, r2]) => setData({ primary: normalizeContributions(r1.data), secondary: normalizeContributions(r2.data) }))
             .catch((err: AxiosError) => {
                 if (err.response?.status === 401) { navigate('/'); return; }
                 setError('Não foi possível carregar os dados do sistema.');

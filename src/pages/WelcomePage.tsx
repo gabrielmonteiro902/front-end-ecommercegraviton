@@ -124,15 +124,18 @@ export default function WelcomePage() {
                 login(res.data);
                 navigate("/graviton-home");
             } else {
+                const tenantId = generateTenantId(tenantName);
                 const res = await api.post("/register", {
                     name_admin: regName,
                     email_admin: regEmail,
                     password_admin: regPassword,
                     github_url: regGithubUrl,
-                    tenant_id: generateTenantId(tenantName),
+                    tenant_id: tenantId,
                     tenant_name: tenantName,
                     tenant_email: regEmail,
                 });
+
+                localStorage.setItem("graviton_tenant_id", res.data.tenant_id ?? tenantId);
 
                 // Armazena o token antes de fazer chamadas autenticadas
                 login(res.data);

@@ -1,36 +1,11 @@
 import '../index.css';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { Plus, ChevronDown, ChevronUp, Trash2, ArrowRight, Save } from 'lucide-react';
-import { api } from '../services/api';
+import { api, toArrayResponse } from '../services/api';
+import Stars from '../components/Stars';
 import type { Repository, OrbitConnection } from '../types/database';
-
-function Stars() {
-    const stars = useMemo(() =>
-        Array.from({ length: 100 }, (_, i) => ({
-            id: i,
-            x: (i * 7.3 + 13.7) % 100,
-            y: (i * 13.1 + 7.3) % 100,
-            size: (i % 3) * 0.5 + 0.5,
-            delay: (i * 0.41) % 5,
-            dur: (i % 3) + 2.5,
-        })), []);
-
-    return (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-            {stars.map(s => (
-                <div key={s.id} className="absolute rounded-full bg-white"
-                    style={{
-                        left: `${s.x}%`, top: `${s.y}%`,
-                        width: `${s.size}px`, height: `${s.size}px`,
-                        animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
-                    }}
-                />
-            ))}
-        </div>
-    );
-}
 
 const statusColor: Record<Repository['status'], string> = {
     syncing: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
@@ -73,8 +48,8 @@ export default function TwoBodyPage() {
                 api.get('/repositories'),
                 api.get('/orbit-connections'),
             ]);
-            setRepos(reposRes.data);
-            setConnections(connRes.data);
+            setRepos(toArrayResponse<Repository>(reposRes.data));
+            setConnections(toArrayResponse<OrbitConnection>(connRes.data));
         } catch (err) {
             const e = err as AxiosError;
             if (e.response?.status === 401) navigate('/');

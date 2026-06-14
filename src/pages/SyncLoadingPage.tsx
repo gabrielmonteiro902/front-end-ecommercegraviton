@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { api } from '../services/api';
+import { api, normalizeContributions } from '../services/api';
 import type { ContributionsResponse } from '../types/database';
 
 const MESSAGES = [
@@ -36,7 +36,7 @@ export default function SyncLoadingPage() {
 
     api.get(`/contributions?repository_id=${repoId}`)
       .then(res => {
-        contributions = res.data;
+        contributions = normalizeContributions(res.data);
         tryNavigate();
       })
       .catch(() => navigate('/graviton-home'));

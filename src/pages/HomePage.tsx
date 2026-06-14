@@ -51,7 +51,8 @@ export default function HomePage() {
     const fetchRepos = async () => {
         try {
             const res = await api.get('/repositories');
-            setRepos(res.data);
+            const raw = res.data;
+            setRepos(Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []));
         } catch (err) {
             const e = err as AxiosError;
             if (e.response?.status === 401) navigate('/');

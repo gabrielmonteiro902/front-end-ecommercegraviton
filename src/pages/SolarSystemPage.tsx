@@ -2,7 +2,7 @@ import '../index.css';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { api } from '../services/api';
+import { api, normalizeContributions, toArrayResponse } from '../services/api';
 import type { Repository, OrbitConnection, Contribution } from '../types/database';
 import OrbitalSystem, { type PlanetData } from '../components/OrbitalSystem';
 import Stars from '../components/Stars';
@@ -37,8 +37,8 @@ export default function SolarSystemPage() {
           api.get('/me').catch(() => ({ data: { name_admin: 'GRAVITON' } })),
         ]);
 
-        const repos: Repository[] = reposRes.data;
-        const connections: OrbitConnection[] = connRes.data;
+        const repos: Repository[] = toArrayResponse<Repository>(reposRes.data);
+        const connections: OrbitConnection[] = toArrayResponse<OrbitConnection>(connRes.data);
         setAccountName((meRes.data.name_admin as string) ?? 'GRAVITON');
 
         const activeRepos = repos.filter(r => r.status === 'active');
@@ -57,7 +57,7 @@ export default function SolarSystemPage() {
               .then(res => ({
                 id,
                 total: (res.data.total_commits as number) ?? 0,
-                contributions: (res.data.contributions as Contribution[]) ?? [],
+                contributions: normalizeContributions(res.data).contributions,
               }))
               .catch((): { id: string; total: number; contributions: Contribution[] } =>
                 ({ id, total: 0, contributions: [] })
