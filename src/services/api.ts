@@ -22,7 +22,7 @@ export function toArrayResponse<T>(raw: unknown): T[] {
 }
 
 export const api = axios.create({
-    baseURL: 'http://localhost:8000/api/v1',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -34,22 +34,32 @@ const PUBLIC_ROUTES = ['/login', '/register'];
 const isPublicRoute = (url?: string) =>
     PUBLIC_ROUTES.some(route => url?.includes(route));
 
-// Injeta o Bearer token em todas as rotas protegidas
 api.interceptors.request.use((config) => {
     const isPublic = isPublicRoute(config.url);
-    if (!isPublic) {
-        const raw = sessionStorage.getItem('graviton_session');
-        if (raw) {
-            try {
-                const session = JSON.parse(raw);
-                if (session?.access_token) {
-                    config.headers.Authorization = `Bearer ${session.access_token}`;
-                }
-            } catch {
-                sessionStorage.removeItem('graviton_session');
+
+    let tenantId: string | null = null;
+    const raw = sessionStorage.getItem('graviton_session');
+    if (raw) {
+        try {
+            const session = JSON.parse(raw);
+            tenantId = session?.tenant_id ?? null;
+            if (!isPublic && session?.access_token) {
+                config.headers.Authorization = `Bearer ${session.access_token}`;
             }
+        } catch {
+            sessionStorage.removeItem('graviton_session');
         }
     }
+
+    // Fallback para localStorage (persiste entre sessões, usado no login)
+    if (!tenantId) {
+        tenantId = localStorage.getItem('graviton_tenant_id');
+    }
+
+    if (tenantId) {
+        config.headers['X-Tenant-ID'] = tenantId;
+    }
+
     return config;
 });
 

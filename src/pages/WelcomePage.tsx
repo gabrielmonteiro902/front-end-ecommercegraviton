@@ -121,6 +121,9 @@ export default function WelcomePage() {
                     "/login",
                     { email_admin: loginEmail, password_admin: loginPassword }
                 );
+                if (res.data.tenant_id) {
+                    localStorage.setItem("graviton_tenant_id", res.data.tenant_id);
+                }
                 login(res.data);
                 navigate("/graviton-home");
             } else {
