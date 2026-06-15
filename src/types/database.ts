@@ -1,8 +1,8 @@
 export interface AuthSession {
-    access_token: string;
-    token_type: string;
-    expires_in: number;
+    // O access_token NÃO vive mais no JS — viaja em cookie HttpOnly emitido pelo backend.
     tenant_id: string;
+    token_type?: string;
+    expires_in?: number;
 }
 
 export interface Admin {

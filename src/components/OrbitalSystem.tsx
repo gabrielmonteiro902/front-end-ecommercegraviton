@@ -341,7 +341,6 @@ export default function OrbitalSystem({ planets, accountName = 'GRAVITON' }: Orb
     const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 1000);
     const sph = { theta: Math.PI / 6, phi: 1.05, radius: 75 };
     let desiredRadius = 75;
-    const camTarget = new THREE.Vector3();
 
     const dl: Disposable[] = [];
     const allSprites: THREE.Sprite[] = [];

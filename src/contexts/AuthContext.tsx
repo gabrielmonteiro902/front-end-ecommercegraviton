@@ -11,36 +11,61 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const SESSION_KEY = "graviton_session";
+const TENANT_KEY = "graviton_tenant_id";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [session, setSession] = useState<AuthSession | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const raw = sessionStorage.getItem("graviton_session");
-        if (raw) {
-            try {
-                setSession(JSON.parse(raw));
-            } catch {
-                sessionStorage.removeItem("graviton_session");
-            }
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) {
+            setLoading(false);
+            return;
         }
-        setLoading(false);
+
+        let cached: AuthSession | null = null;
+        try {
+            cached = JSON.parse(raw);
+        } catch {
+            localStorage.removeItem(SESSION_KEY);
+        }
+
+        if (!cached) {
+            setLoading(false);
+            return;
+        }
+
+        // O JWT está num cookie HttpOnly (invisível ao JS), então confirmamos a sessão
+        // com o backend via /me. Se o cookie expirou/sumiu, o 401 limpa tudo.
+        api.get("/me")
+            .then(() => setSession(cached))
+            .catch(() => {
+                localStorage.removeItem(SESSION_KEY);
+                localStorage.removeItem(TENANT_KEY);
+                setSession(null);
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     const login = (data: AuthSession) => {
         setSession(data);
-        sessionStorage.setItem("graviton_session", JSON.stringify(data));
+        localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+        if (data.tenant_id) {
+            localStorage.setItem(TENANT_KEY, data.tenant_id);
+        }
     };
 
     const logout = async () => {
         try {
             await api.post("/logout");
         } catch {
-            // token já expirado — limpa mesmo assim
+            // cookie já expirado/inválido — limpa o estado local mesmo assim
         }
         setSession(null);
-        sessionStorage.removeItem("graviton_session");
-        localStorage.removeItem("graviton_tenant_id");
+        localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem(TENANT_KEY);
     };
 
     return (

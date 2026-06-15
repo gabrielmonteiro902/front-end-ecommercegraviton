@@ -121,9 +121,6 @@ export default function WelcomePage() {
                     "/login",
                     { email_admin: loginEmail, password_admin: loginPassword }
                 );
-                if (res.data.tenant_id) {
-                    localStorage.setItem("graviton_tenant_id", res.data.tenant_id);
-                }
                 login(res.data);
                 navigate("/graviton-home");
             } else {
@@ -160,18 +157,19 @@ export default function WelcomePage() {
         } catch (err) {
             if (!(err as AxiosError).isAxiosError) {
                 console.error("Erro inesperado no frontend:", err);
-                setError(`Erro interno: ${(err as Error).message}`);
+                setError("Ocorreu um erro inesperado. Tente novamente.");
             } else {
                 const axiosErr = err as AxiosError<{ message?: string; error?: string; errors?: Record<string, string[]> }>;
                 const data = axiosErr.response?.data;
 
                 if (!axiosErr.response) {
-                    setError(`Servidor inacessível — verifique se o Laravel está rodando (${axiosErr.message})`);
+                    setError("Não foi possível conectar ao servidor. Tente novamente em instantes.");
                 } else if (data?.errors) {
+                    // Erros de validação (422) são seguros e úteis de exibir ao usuário.
                     const messages = Object.values(data.errors).flat().join(" | ");
                     setError(messages);
                 } else {
-                    setError(data?.message || data?.error || `Erro ${axiosErr.response.status} — resposta inesperada do servidor`);
+                    setError(data?.message || data?.error || "Não foi possível concluir a operação. Tente novamente.");
                 }
             }
         } finally {

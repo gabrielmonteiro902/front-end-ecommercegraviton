@@ -23,6 +23,8 @@ export function toArrayResponse<T>(raw: unknown): T[] {
 
 export const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+    // Envia/recebe o cookie HttpOnly que carrega o JWT. O token nunca passa pelo JS.
+    withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -34,43 +36,29 @@ const PUBLIC_ROUTES = ['/login', '/register'];
 const isPublicRoute = (url?: string) =>
     PUBLIC_ROUTES.some(route => url?.includes(route));
 
+// O JWT viaja em cookie HttpOnly gerenciado pelo browser — o front não injeta mais
+// o header Authorization. Só anexamos o X-Tenant-ID (necessário nas rotas públicas
+// como o login e útil como defesa em profundidade nas protegidas).
 api.interceptors.request.use((config) => {
-    const isPublic = isPublicRoute(config.url);
-
-    let tenantId: string | null = null;
-    const raw = sessionStorage.getItem('graviton_session');
-    if (raw) {
-        try {
-            const session = JSON.parse(raw);
-            tenantId = session?.tenant_id ?? null;
-            if (!isPublic && session?.access_token) {
-                config.headers.Authorization = `Bearer ${session.access_token}`;
-            }
-        } catch {
-            sessionStorage.removeItem('graviton_session');
-        }
-    }
-
-    // Fallback para localStorage (persiste entre sessões, usado no login)
-    if (!tenantId) {
-        tenantId = localStorage.getItem('graviton_tenant_id');
-    }
-
+    const tenantId = localStorage.getItem('graviton_tenant_id');
     if (tenantId) {
         config.headers['X-Tenant-ID'] = tenantId;
     }
-
     return config;
 });
 
-// Qualquer 401 em rota protegida = token expirado/inválido → limpa sessão e redireciona
+// 401 em rota protegida = cookie ausente/expirado → limpa o estado local e manda pro login.
+// Não redireciona se já estiver no login, para evitar loop durante a validação inicial.
 api.interceptors.response.use(
     response => response,
     error => {
         const isPublic = isPublicRoute(error.config?.url);
         if (!isPublic && error.response?.status === 401) {
-            sessionStorage.removeItem('graviton_session');
-            window.location.href = '/';
+            localStorage.removeItem('graviton_session');
+            localStorage.removeItem('graviton_tenant_id');
+            if (window.location.pathname !== '/') {
+                window.location.href = '/';
+            }
         }
         return Promise.reject(error);
     }
