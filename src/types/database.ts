@@ -30,6 +30,7 @@ export interface Repository {
 
 export interface Contributor {
     id: string;
+    github_id?: number;
     username: string;
     avatar_url: string;
     hireable: boolean;

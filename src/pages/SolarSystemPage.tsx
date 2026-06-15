@@ -25,6 +25,7 @@ export default function SolarSystemPage() {
   const navigate = useNavigate();
   const [planets, setPlanets] = useState<PlanetData[] | null>(null);
   const [accountName, setAccountName] = useState('GRAVITON');
+  const [sunRegions, setSunRegions] = useState<{ name: string; commits: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +69,20 @@ export default function SolarSystemPage() {
         const dataById = new Map<string, RepoData>(
           fetchResults.map(r => [r.id, { total: r.total, contributions: r.contributions }])
         );
+
+        // Commits DO USUÁRIO logado, por projeto → "países" do sol central.
+        // (só preenche quando logado via GitHub; casamos pelo github_id)
+        const myGithubId = (meRes.data.github_id as number | null) ?? null;
+        if (myGithubId != null) {
+          const regions = repos
+            .map(r => {
+              const mine = dataById.get(r.id)?.contributions
+                .find(c => c.contributor?.github_id === myGithubId);
+              return { name: `${r.github_owner}/${r.github_repo}`, commits: mine?.commits_count ?? 0 };
+            })
+            .filter(reg => reg.commits > 0);
+          setSunRegions(regions);
+        }
 
         // First orbit-connection per primary wins
         const primaryToSecondary = new Map<string, Repository>();
@@ -136,7 +151,7 @@ export default function SolarSystemPage() {
 
       {planets && (
         <div className="absolute inset-0 z-[1]">
-          <OrbitalSystem planets={planets} accountName={accountName} />
+          <OrbitalSystem planets={planets} accountName={accountName} sunRegions={sunRegions} />
         </div>
       )}
 

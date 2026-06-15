@@ -20,6 +20,8 @@ export interface PlanetData {
 interface OrbitalSystemProps {
   planets: PlanetData[];
   accountName?: string;
+  // Commits do usuário logado por projeto — viram o "mapa de países" do sol central.
+  sunRegions?: { name: string; commits: number }[];
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -28,6 +30,7 @@ const SUN_R    = 18;
 const SUN_LATS = 72;
 const SUN_LONS = 120;
 const SUN_CUBE = 0.32;
+const SUN_COUNTRY_LIMIT = 20;
 
 const MIN_P_R  = 0.8;
 const MAX_P_R  = 2.4;
@@ -73,7 +76,72 @@ function buildSunGlobe(
   cubeSize: number,
   palette: THREE.Color[],
   dl: Disposable[],
+  regions?: { name: string; commits: number }[],
 ) {
+  // ── Data-driven: cada projeto do usuário vira um "país" no sol, dimensionado e
+  // iluminado pelos commits que ELE fez ali. Voronoi ponderado preenche o globo
+  // (mapa político cinza) com fronteiras escuras entre os países.
+  if (regions && regions.length > 0) {
+    const limited = [...regions].sort((a, b) => b.commits - a.commits).slice(0, SUN_COUNTRY_LIMIT);
+    const maxC = Math.max(...limited.map(r => r.commits), 1);
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    const poles = limited.map((r, i) => {
+      const yy = 1 - (i / Math.max(limited.length - 1, 1)) * 2;
+      const rr = Math.sqrt(Math.max(0, 1 - yy * yy));
+      const t = golden * i;
+      return { nx: Math.cos(t) * rr, ny: yy, nz: Math.sin(t) * rr, commits: r.commits };
+    });
+
+    const pts: { x: number; y: number; z: number; color: THREE.Color }[] = [];
+    for (let li = 0; li < lats; li++) {
+      const phi = (li / (lats - 1)) * Math.PI;
+      const lc = Math.max(1, Math.round(lons * Math.sin(phi)));
+      for (let lo = 0; lo < lc; lo++) {
+        const theta = (lo / lc) * Math.PI * 2;
+        const nx = Math.sin(phi) * Math.cos(theta);
+        const ny = Math.cos(phi);
+        const nz = Math.sin(phi) * Math.sin(theta);
+
+        let best: typeof poles[0] | null = null;
+        let bestScore = Infinity, secondScore = Infinity;
+        for (const p of poles) {
+          const d = Math.sqrt((nx - p.nx) ** 2 + (ny - p.ny) ** 2 + (nz - p.nz) ** 2);
+          const w = 0.45 + (p.commits / maxC) * 0.55; // mais commits → "puxa" mais território
+          const score = d / w;
+          if (score < bestScore) { secondScore = bestScore; bestScore = score; best = p; }
+          else if (score < secondScore) { secondScore = score; }
+        }
+
+        let color: THREE.Color;
+        if (secondScore - bestScore < 0.05) {
+          color = palette[0].clone(); // fronteira escura entre países
+        } else {
+          const intensity = best ? best.commits / maxC : 0;
+          const idx = Math.min(palette.length - 1, 1 + Math.round(intensity * (palette.length - 2)));
+          color = palette[idx].clone();
+        }
+        pts.push({ x: nx * radius, y: ny * radius, z: nz * radius, color });
+      }
+    }
+
+    const geoD = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+    const matD = new THREE.MeshBasicMaterial();
+    const meshD = new THREE.InstancedMesh(geoD, matD, pts.length);
+    const dummyD = new THREE.Object3D();
+    pts.forEach((p, i) => {
+      dummyD.position.set(p.x, p.y, p.z);
+      dummyD.lookAt(0, 0, 0);
+      dummyD.updateMatrix();
+      meshD.setMatrixAt(i, dummyD.matrix);
+      meshD.setColorAt(i, p.color);
+    });
+    meshD.instanceMatrix.needsUpdate = true;
+    if (meshD.instanceColor) meshD.instanceColor.needsUpdate = true;
+    parent.add(meshD);
+    dl.push(geoD, matD);
+    return;
+  }
+
   const N = 8;
   const poles = Array.from({ length: N }, (_, i) => {
     const yy = 1 - (i / (N - 1)) * 2;
@@ -324,7 +392,7 @@ function makePlanetLabel(
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function OrbitalSystem({ planets, accountName = 'GRAVITON' }: OrbitalSystemProps) {
+export default function OrbitalSystem({ planets, accountName = 'GRAVITON', sunRegions = [] }: OrbitalSystemProps) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -357,7 +425,7 @@ export default function OrbitalSystem({ planets, accountName = 'GRAVITON' }: Orb
     // ── Sun ───────────────────────────────────────────────────────────────────
     const sunGroup = new THREE.Group();
     masterGroup.add(sunGroup);
-    buildSunGlobe(sunGroup, SUN_R, SUN_LATS, SUN_LONS, SUN_CUBE, SUN_PAL, dl);
+    buildSunGlobe(sunGroup, SUN_R, SUN_LATS, SUN_LONS, SUN_CUBE, SUN_PAL, dl, sunRegions);
 
     const sunLabelWrap = document.createElement('div');
     sunLabelWrap.style.cssText = 'position:absolute;transform:translateX(-50%) translateY(-100%);pointer-events:none;visibility:hidden;';
@@ -716,7 +784,7 @@ export default function OrbitalSystem({ planets, accountName = 'GRAVITON' }: Orb
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
       if (container.contains(labelsEl)) container.removeChild(labelsEl);
     };
-  }, [planets, accountName]);
+  }, [planets, accountName, sunRegions]);
 
   return <div ref={mountRef} style={{ width: '100%', height: '100%', position: 'relative' }} />;
 }
