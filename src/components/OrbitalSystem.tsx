@@ -60,6 +60,9 @@ const PLANET_PALS = PALETTE_DEFS.map(pal => pal.map(c => new THREE.Color(c)));
 const SUN_PAL = ['#0d0d0d', '#191919', '#272727', '#363636', '#464646'].map(c => new THREE.Color(c));
 const DARK_CUBE = new THREE.Color('#161b22');
 
+// Verde dos commits (mesma escala da contribution graph do GitHub) — sol data-driven.
+const SUN_GREEN = ['#0e4429', '#006d32', '#26a641', '#39d353'].map(c => new THREE.Color(c));
+
 // ── Pseudo-random ─────────────────────────────────────────────────────────────
 
 const sr = (n: number) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
@@ -89,10 +92,7 @@ function buildSunGlobe(
       const yy = 1 - (i / Math.max(limited.length - 1, 1)) * 2;
       const rr = Math.sqrt(Math.max(0, 1 - yy * yy));
       const t = golden * i;
-      const intensity = r.commits / maxC;
-      // Hue distinto por país (golden-angle p/ espalhar as cores); mais commits → um pouco mais claro.
-      const color = new THREE.Color().setHSL((i * 0.6180339887) % 1, 0.58, 0.40 + intensity * 0.20);
-      return { nx: Math.cos(t) * rr, ny: yy, nz: Math.sin(t) * rr, commits: r.commits, color };
+      return { nx: Math.cos(t) * rr, ny: yy, nz: Math.sin(t) * rr, commits: r.commits };
     });
 
     const pts: { x: number; y: number; z: number; color: THREE.Color }[] = [];
@@ -117,11 +117,14 @@ function buildSunGlobe(
 
         let color: THREE.Color;
         if (secondScore - bestScore < 0.05) {
-          color = palette[0].clone();       // fronteira escura entre os países
+          color = DARK_CUBE.clone();         // fronteira escura entre os países
         } else if (best) {
-          color = best.color.clone();        // cada país com sua própria cor
+          // verde dos commits (estilo GitHub): mais commits → verde mais aceso
+          const intensity = best.commits / maxC;
+          const idx = Math.min(SUN_GREEN.length - 1, Math.round(intensity * (SUN_GREEN.length - 1)));
+          color = SUN_GREEN[idx].clone();
         } else {
-          color = palette[0].clone();
+          color = DARK_CUBE.clone();
         }
         pts.push({ x: nx * radius, y: ny * radius, z: nz * radius, color });
       }
