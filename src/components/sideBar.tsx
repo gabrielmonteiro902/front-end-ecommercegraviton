@@ -1,6 +1,6 @@
 import '../index.css';
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Settings, LogOut, Menu, X, ChevronRight, Atom, Orbit } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X, ChevronRight, Atom, Orbit } from 'lucide-react';
 import GravitonLogo from './GravitonLogo';
 import { api } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -60,7 +60,6 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
         { icon: Orbit,           label: 'Sist. Orbital',   path: '/sistema-orbital', featured: true  },
         { icon: LayoutDashboard, label: 'Repositórios',    path: '/graviton-home',   featured: false },
         { icon: Atom,            label: 'Dois Corpos',     path: '/dois-corpos',     featured: false },
-        { icon: Settings,        label: 'Configurações',   path: '/settings',        featured: false },
     ];
 
     const handleLogout = async () => { await logout(); navigate('/'); };
