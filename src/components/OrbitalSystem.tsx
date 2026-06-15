@@ -89,7 +89,10 @@ function buildSunGlobe(
       const yy = 1 - (i / Math.max(limited.length - 1, 1)) * 2;
       const rr = Math.sqrt(Math.max(0, 1 - yy * yy));
       const t = golden * i;
-      return { nx: Math.cos(t) * rr, ny: yy, nz: Math.sin(t) * rr, commits: r.commits };
+      const intensity = r.commits / maxC;
+      // Hue distinto por país (golden-angle p/ espalhar as cores); mais commits → um pouco mais claro.
+      const color = new THREE.Color().setHSL((i * 0.6180339887) % 1, 0.58, 0.40 + intensity * 0.20);
+      return { nx: Math.cos(t) * rr, ny: yy, nz: Math.sin(t) * rr, commits: r.commits, color };
     });
 
     const pts: { x: number; y: number; z: number; color: THREE.Color }[] = [];
@@ -114,11 +117,11 @@ function buildSunGlobe(
 
         let color: THREE.Color;
         if (secondScore - bestScore < 0.05) {
-          color = palette[0].clone(); // fronteira escura entre países
+          color = palette[0].clone();       // fronteira escura entre os países
+        } else if (best) {
+          color = best.color.clone();        // cada país com sua própria cor
         } else {
-          const intensity = best ? best.commits / maxC : 0;
-          const idx = Math.min(palette.length - 1, 1 + Math.round(intensity * (palette.length - 2)));
-          color = palette[idx].clone();
+          color = palette[0].clone();
         }
         pts.push({ x: nx * radius, y: ny * radius, z: nz * radius, color });
       }
