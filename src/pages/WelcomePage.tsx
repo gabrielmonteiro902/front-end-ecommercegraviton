@@ -1,11 +1,11 @@
 import "../index.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Stars from "../components/Stars";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Github } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
-import { api } from "../services/api";
+import { api, githubLoginUrl } from "../services/api";
 import WelcomeGlobe from "../components/WelcomeGlobe";
 import GravitonLogo from "../components/GravitonLogo";
 
@@ -97,6 +97,13 @@ export default function WelcomePage() {
     const [regPassword, setRegPassword] = useState("");
     const [regGithubUrl, setRegGithubUrl] = useState("");
     const [tenantName, setTenantName] = useState("");
+
+    useEffect(() => {
+        const err = new URLSearchParams(window.location.search).get("error");
+        if (err && err.startsWith("github")) {
+            setError("Não foi possível entrar com o GitHub. Tente novamente.");
+        }
+    }, []);
 
     const generateTenantId = (name: string) => {
         const slug = name
@@ -378,6 +385,23 @@ export default function WelcomePage() {
                                         <ArrowRight size={14} />
                                     </>
                                 )}
+                            </button>
+
+                            {/* Divisor */}
+                            <div className="flex items-center gap-3 my-1">
+                                <div className="h-px flex-1 bg-white/10" />
+                                <span className="text-[9px] font-mono tracking-[0.2em] text-white/20 uppercase">ou</span>
+                                <div className="h-px flex-1 bg-white/10" />
+                            </div>
+
+                            {/* GitHub OAuth */}
+                            <button
+                                type="button"
+                                onClick={() => { window.location.href = githubLoginUrl(); }}
+                                className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-white/15 bg-white/[0.03] py-3.5 text-white text-xs font-bold tracking-[0.12em] uppercase hover:bg-white/[0.07] hover:border-white/25 active:scale-[0.98] transition-all"
+                            >
+                                <Github size={15} />
+                                Entrar com GitHub
                             </button>
                         </form>
                     </div>

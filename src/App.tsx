@@ -9,6 +9,7 @@ import GlobePage from './pages/GlobePage'
 import TwoBodyPage from './pages/TwoBodyPage'
 import TwoBodyViewPage from './pages/TwoBodyViewPage'
 import SolarSystemPage from './pages/SolarSystemPage'
+import GithubCallback from './pages/GithubCallback'
 import './index.css'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -36,6 +37,7 @@ function App() {
         <Routes>
           {/* Rotas públicas */}
           <Route path="/" element={<WelcomePage />} />
+          <Route path="/auth/callback" element={<GithubCallback />} />
 
           {/* Rotas protegidas */}
           <Route path="/sync-loading" element={
